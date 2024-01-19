@@ -3,18 +3,16 @@ package dpfm_api_caller
 import (
 	"context"
 	"crypto/sha256"
-	dpfm_api_input_reader "data-platform-api-product-master-doc-creates-rmq-kube/DPFM_API_Input_Formatter"
-	dpfm_api_output_formatter "data-platform-api-product-master-doc-creates-rmq-kube/DPFM_API_Output_Formatter"
-	"data-platform-api-product-master-doc-creates-rmq-kube/config"
+	dpfm_api_input_reader "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Input_Formatter"
+	dpfm_api_output_formatter "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Output_Formatter"
+	"data-platform-api-mill-sheet-pdf-generates-rmq-kube/config"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
 	rabbitmq "github.com/latonaio/rabbitmq-golang-client-for-data-platform"
 	"os"
-	"strconv"
-	"time"
-
-	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
+	"sync"
 )
 
 type DPFMAPICaller struct {
@@ -90,47 +88,19 @@ func encodeToStringSha256(s string) string {
 	return hex.EncodeToString(r[:])
 }
 
-func (c *DPFMAPICaller) AsyncDocCreates(
+func (c *DPFMAPICaller) AsyncPDFCreates(
+	accepter []string,
 	input *dpfm_api_input_reader.SDC,
 	output *dpfm_api_output_formatter.SDC,
 	log *logger.Logger,
-	errs *[]error,
 	conf *config.Conf,
 ) (interface{}, []error) {
-	var docIssuerBusinessPartner = input.Product.GeneralDoc.DocIssuerBusinessPartner
-	var fileExtension = input.Product.GeneralDoc.FileExtension
-	var docData = input.DocData
+	mtx := sync.Mutex{}
+	errs := make([]error, 0, 5)
 
-	var combinedString = fmt.Sprintf(
-		"%v%v%v",
-		input.Product.GeneralDoc.DocIssuerBusinessPartner,
-		time.Now().Unix(),
-		input.Product.GeneralDoc.DocVersionID,
-	)
+	var response interface{}
 
-	directoryPath := fmt.Sprintf("%s/%s",
-		conf.MountPath,
-		strconv.Itoa(docIssuerBusinessPartner),
-	)
-
-	var dockId = fmt.Sprintf("%s", encodeToStringSha256(combinedString))
-
-	err := generateFile(directoryPath, dockId, fileExtension, docData, log)
-	if err != nil {
-		*errs = append(*errs, err)
-		return nil, nil
-	}
-
-	response := c.createSqlProcess(input, output, &dpfm_api_output_formatter.GeneralDoc{
-		Product:                  input.Product.Product,
-		DocType:                  input.Product.GeneralDoc.DocType,
-		DocVersionID:             input.Product.GeneralDoc.DocVersionID,
-		DocID:                    &dockId,
-		FileExtension:            input.Product.GeneralDoc.FileExtension,
-		FileName:                 input.Product.GeneralDoc.FileName,
-		FilePath:                 directoryPath,
-		DocIssuerBusinessPartner: input.Product.GeneralDoc.DocIssuerBusinessPartner,
-	}, errs, log)
+	response = c.process(nil, &mtx, input, output, accepter, &errs, log, conf)
 
 	return response, nil
 }

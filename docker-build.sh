@@ -3,9 +3,9 @@
 PUSH=$1
 DATE="$(date "+%Y%m%d%H%M")"
 REPOSITORY_PREFIX="latonaio"
-SERVICE_NAME="data-platform-api-product-master-doc-creates-rmq-kube"
+SERVICE_NAME="data-platform-api-mill-sheet-pdf-generates-rmq-kube"
 
-DOCKER_BUILDKIT=1 docker build --platform linux/amd64 --progress=plain -t ${SERVICE_NAME}:"${DATE}" . --no-cache 
+DOCKER_BUILDKIT=1 docker build --platform linux/amd64 --progress=plain -t ${SERVICE_NAME}:"${DATE}" . --no-cache
 
 # tagging
 docker tag ${SERVICE_NAME}:"${DATE}" ${SERVICE_NAME}:latest

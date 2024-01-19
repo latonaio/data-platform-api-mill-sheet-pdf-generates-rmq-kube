@@ -3,36 +3,38 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    run: data-platform-api-product-master-doc-creates-rmq-kube
-  name: data-platform-api-product-master-doc-creates-rmq-kube
+    run: data-platform-mill-sheet-pdf-generates-rmq-kube
+  name: data-platform-api-mill-sheet-pdf-generates-rmq-kube
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      run: data-platform-api-product-master-doc-creates-rmq-kube
-  strategy:
-    type: Recreate
+      run: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+      app: FUNC_MILL_SHEET_PDF
   template:
     metadata:
       labels:
-        run: data-platform-api-product-master-doc-creates-rmq-kube
+        run: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+        app: FUNC_MILL_SHEET_PDF
     spec:
-      nodeName: worker
-      hostname: data-platform-api-product-master-doc-creates-rmq-kube
+      hostname: data-platform-api-mill-sheet-pdf-generates-rmq-kube
       containers:
-        - name: data-platform-api-product-master-doc-creates-rmq-kube
-          image: latonaio/data-platform-api-product-master-doc-creates-rmq-kube
+        - name: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+          image: latonaio/data-platform-api-mill-sheet-pdf-generates-rmq-kube
           imagePullPolicy: Always
           env:
             - name: TZ
               value: Asia/Tokyo
             - name: RMQ_QUEUE_FROM
-              value: "data-platform-api-product-master-doc-creates-queue"
+              value: "data-platform-api-mill-sheet-pdf-generates-queue"
             - name: RMQ_QUEUE_TO_SQL
               value: "sql-update-kube"
             - name: RMQ_SESSION_CONTROL_QUEUE
-              value: "data-platform-api-product-master-doc-creates-session-control-queue"
+              value: "data-platform-api-mill-sheet-pdf-generates-session-control-queue"
             - name: MOUNT_PATH
-              value: "/volume"
+              value: "/mill-sheet-pdf"
+            - name: MATERIAL_PATH
+              value: "/material"
           envFrom:
             - configMapRef:
                 name: env-config
@@ -40,38 +42,27 @@ spec:
                 name: env-secret
           volumeMounts:
             - name: doc-storage
-              mountPath: /volume
+              mountPath: /mill-sheet-pdf
+            - name: material-storage
+              mountPath: /material
       volumes:
         - name: doc-persistent-storage
           persistentVolumeClaim:
-            claimName: data-platform-api-product-master-doc-creates-rmq-kube-pv-claim
+            claimName: data-platform-api-mill-sheet-pdf-generates-rmq-kube-pv-claim
         - name: doc-storage
           hostPath:
-            path: /mnt/data-platform-api-product-master-doc-creates-rmq-kube
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    run: data-platform-api-product-master-doc-creates-rmq-kube
-  name: data-platform-api-product-master-doc-creates-rmq-kube
-spec:
-  selector:
-    run: data-platform-api-product-master-doc-creates-rmq-kube
-  type: NodePort
-  ports:
-    - name: data-platform-api-product-master-doc-creates-rmq-kube
-      port: 3000
-      protocol: TCP
-      nodePort: 30626
+            path: /mnt/data-platform-api-mill-sheet-pdf-generates-rmq-kube/mill-sheet-pdf
+        - name: material-storage
+          hostPath:
+            path: /mnt/data-platform-api-mill-sheet-pdf-generates-rmq-kube/material
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: data-platform-api-product-master-doc-creates-rmq-kube-pv-claim
+  name: data-platform-api-mill-sheet-pdf-generates-rmq-kube-pv-claim
   namespace: default
 spec:
-  storageClassName: data-platform-api-product-master-doc-creates-rmq-kube
+  storageClassName: data-platform-api-mill-sheet-pdf-generates-rmq-kube
   accessModes:
     - ReadWriteOnce
   resources:
@@ -81,16 +72,31 @@ spec:
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: data-platform-api-product-master-doc-creates-rmq-kube-pv-volume
+  name: data-platform-api-mill-sheet-pdf-generates-rmq-kube-pv-volume
   labels:
     type: local
   namespace: default
 spec:
-  storageClassName: data-platform-api-product-master-doc-creates-rmq-kube
+  storageClassName: data-platform-api-mill-sheet-pdf-generates-rmq-kube
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/data-platform-api-product-master-doc-creates-rmq-kube
+    path: /mnt/data-platform-api-mill-sheet-pdf-generates-rmq-kube
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+  name: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+spec:
+  selector:
+    run: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+  type: NodePort
+  ports:
+    - name: data-platform-api-mill-sheet-pdf-generates-rmq-kube
+      port: 3000
+      protocol: TCP
+      nodePort: 30626

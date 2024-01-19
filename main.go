@@ -1,14 +1,17 @@
 package main
 
 import (
-	dpfm_api_caller "data-platform-api-product-master-doc-creates-rmq-kube/DPFM_API_Caller"
-	dpfm_api_input_reader "data-platform-api-product-master-doc-creates-rmq-kube/DPFM_API_Input_Formatter"
-	dpfm_api_output_formatter "data-platform-api-product-master-doc-creates-rmq-kube/DPFM_API_Output_Formatter"
-	"data-platform-api-product-master-doc-creates-rmq-kube/config"
+	dpfm_api_caller "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Caller"
+	dpfm_api_input_reader "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Input_Formatter"
+	dpfm_api_output_formatter "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Output_Formatter"
+	"data-platform-api-mill-sheet-pdf-generates-rmq-kube/config"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
+	lnpdf "github.com/latonaio/golang-pdf-library"
 	rabbitmq "github.com/latonaio/rabbitmq-golang-client-for-data-platform"
 )
 
@@ -74,7 +77,11 @@ func callProcess(rmq *rabbitmq.RabbitmqClient, caller *dpfm_api_caller.DPFMAPICa
 
 	var errs []error
 
-	res, errs := caller.AsyncDocCreates(&input, &output, l, &errs, conf)
+	accepter := getAccepter(&input)
+	res, errs := caller.AsyncPDFCreates(accepter, &input, &output, l, conf)
+
+	//output.MillSheetPdf = generatePdf(string(input.MillCertData.Data))
+
 	if len(errs) != 0 {
 		for _, err := range errs {
 			l.Error(err)
@@ -82,6 +89,7 @@ func callProcess(rmq *rabbitmq.RabbitmqClient, caller *dpfm_api_caller.DPFMAPICa
 		output.APIProcessingResult = getBoolPtr(false)
 		output.APIProcessingError = errs[0].Error()
 		output.Message = res
+
 		rmq.Send(conf.RMQ.QueueToResponse(), output)
 		return errs[0]
 	}
@@ -94,6 +102,61 @@ func callProcess(rmq *rabbitmq.RabbitmqClient, caller *dpfm_api_caller.DPFMAPICa
 	return nil
 }
 
+func getAccepter(input *dpfm_api_input_reader.SDC) []string {
+	accepter := input.Accepter
+	if len(input.Accepter) == 0 {
+		accepter = []string{"All"}
+	}
+
+	if accepter[0] == "All" {
+		accepter = []string{
+			"MillSheet",
+		}
+	}
+	return accepter
+}
+
 func getBoolPtr(b bool) *bool {
 	return &b
+}
+
+func generatePdf(data string) string {
+	// pdf
+	pdfFile := "layout.pdf"
+	//defer os.Remove(pdfFile)
+
+	// resource json data
+	dataFile := "test.json"
+	//defer os.Remove(dataFile)
+
+	createdDatafile, err := os.Create(dataFile)
+	if err != nil {
+		panic(err)
+	}
+
+	// write resource json data
+	//os.WriteFile(dataFile, []byte(data), os.ModeAppend)
+	//err = os.WriteFile(file, []byte(data), 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
+	_, err = createdDatafile.WriteString(data)
+	if err != nil {
+		panic(err)
+	}
+
+	// build & write pdf
+	lnpdf.Builder{
+		TemplatePath:   "template.json",
+		DataSourcePath: dataFile,
+	}.Build().Output(&pdfFile)
+
+	// encode pdf binary to base64
+	file, err := os.ReadFile(pdfFile)
+	if err != nil {
+		panic(err)
+	}
+	encoded := base64.StdEncoding.EncodeToString(file)
+
+	return encoded
 }

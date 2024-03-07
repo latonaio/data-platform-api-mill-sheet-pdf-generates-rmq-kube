@@ -7,7 +7,7 @@
 	"ItemPricingElement": null,
 	"OrdersItemSingleUnitMillSheetHeader": [
 		{
-			"OrderID": 1,
+			"OrderID": 8010601,
 			"OrderItem": 1,
 			"OrderType": "OD",
 			"OrderStatus": "FIX",
@@ -33,7 +33,7 @@
 			"Project": null,
 			"WBSElement": null,
 			"GrossAmount": 6600,
-			"InspectionLot": 1,
+			"InspectionLot": 8010601,
 			"InspectionLotDate": "",
 			"InspectionSpecification": null
 		}

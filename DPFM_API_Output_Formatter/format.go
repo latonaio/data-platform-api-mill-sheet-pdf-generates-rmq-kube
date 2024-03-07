@@ -2,6 +2,7 @@ package dpfm_api_output_formatter
 
 import (
 	dpfm_api_input_reader "data-platform-api-mill-sheet-pdf-generates-rmq-kube/DPFM_API_Input_Formatter"
+	"fmt"
 )
 
 func SetToPdfData(
@@ -31,18 +32,6 @@ func SetToPdfData(
 		}
 	}
 
-	//	var mechanicalProperties []MechanicalProperty
-	//	for _, prop := range headerData.MechanicalProperties {
-	//		mechanicalProperties = append(mechanicalProperties, MechanicalProperty{
-	//			LabelEn: prop.LabelEn,
-	//			Label:   prop.Label,
-	//			Unit:    prop.Unit,
-	//			Min:     prop.Min,
-	//			Max:     prop.Max,
-	//			HeatNo:  prop.HeatNo,
-	//		})
-	//	}
-
 	var componentCompositions []ComponentCompositions
 	for _, dataCCs := range inputComponentCompositions {
 		if headerData.OrderID == dataCCs.OrderID {
@@ -58,16 +47,6 @@ func SetToPdfData(
 			})
 		}
 	}
-
-	//	var chemicalCompositions []ChemicalComposition
-	//	for _, comp := range headerData.ChemicalCompositions {
-	//		chemicalCompositions = append(chemicalCompositions, ChemicalComposition{
-	//			Label:  comp.Label,
-	//			Max:    comp.Max,
-	//			Min:    comp.Min,
-	//			HeatNo: comp.HeatNo,
-	//		})
-	//	}
 
 	var inspections []Inspections
 	for _, dataIPTs := range inputInspections {
@@ -86,52 +65,32 @@ func SetToPdfData(
 		}
 	}
 
-	//var specifications []Specification
-	//for _, spec := range headerData.Specifications {
-	//	specifications = append(specifications, Specification{
-	//		LabelEn: spec.LabelEn,
-	//		Label:   spec.Label,
-	//		Value1:  spec.Value1,
-	//		Value2:  spec.Value2,
-	//	})
-	//}
-
 	pm = &Header{
-		OrderID:   headerData.OrderID,
-		OrderItem: headerData.OrderItem,
-		//		↑OrderNo:							headerData.OrderNo,
-		BuyerName: headerData.BuyerName,
-		//		↑Customer:							headerData.Customer,
+		OrderID:                 fmt.Sprintf("%d", headerData.OrderID),
+		OrderItem:               headerData.OrderItem,
+		BuyerName:               headerData.BuyerName,
 		SellerName:              headerData.SellerName,
 		Product:                 headerData.Product,
 		SizeOrDimensionText:     headerData.SizeOrDimensionText,
 		OrderQuantityInBaseUnit: headerData.OrderQuantityInBaseUnit,
-		//		↑Quantity:							headerData.Quantity,
-		ProductSpecification: headerData.ProductSpecification,
-		//		↑StandardOfRawMaterial:     		headerData.StandardOfRawMaterial,
-		MarkingOfMaterial:   headerData.MarkingOfMaterial,
-		ProductionOrder:     headerData.ProductionOrder,
-		ProductionOrderItem: headerData.ProductionOrderItem,
+		ProductSpecification:    headerData.ProductSpecification,
+		MarkingOfMaterial:       headerData.MarkingOfMaterial,
+		ProductionOrder:         headerData.ProductionOrder,
+		ProductionOrderItem:     headerData.ProductionOrderItem,
 		//		↑MfgNo:								headerData.MfgNo,
-		InspectionLot: headerData.InspectionLot,
+		InspectionLot: fmt.Sprintf("%d", headerData.InspectionLot),
 		//		↑CertificateNo:						headerData.CertificateNo,
 		InspectionPlantBusinessPartnerName: headerData.InspectionPlantBusinessPartnerName,
-		//		↑RawMaterialMaker:          		headerData.RawMaterialMaker,
-		InspectionLotDate: inputHeaderInspectionLot.InspectionLotDate,
-		//		↑Date:								headerData.Date,
-		InspectionSpecification: inputHeaderInspectionLot.InspectionSpecification,
-		//		↑SpecificationForInspection: 		headerData.SpecificationForInspection,
-		HeatNumber:      headerData.HeatNumber,
-		DrawingNo:       headerData.DrawingNo,
-		PurchaseOrderNo: headerData.PurchaseOrderNo,
-		SpecDetails:     specDetails,
-		//		MechanicalProperties:       		mechanicalProperties,
-		ComponentCompositions: componentCompositions,
-		//		ChemicalCompositions:       		chemicalCompositions,
-		Inspections: inspections,
-		//		Specifications:             		specifications,
-		Remarks:                  headerData.Remarks,
-		ChiefOfInspectionSection: headerData.ChiefOfInspectionSection,
+		InspectionLotDate:                  inputHeaderInspectionLot.InspectionLotDate,
+		InspectionSpecification:            inputHeaderInspectionLot.InspectionSpecification,
+		HeatNumber:                         headerData.HeatNumber,
+		DrawingNo:                          headerData.DrawingNo,
+		PurchaseOrderNo:                    headerData.PurchaseOrderNo,
+		SpecDetails:                        specDetails,
+		ComponentCompositions:              componentCompositions,
+		Inspections:                        inspections,
+		Remarks:                            headerData.Remarks,
+		ChiefOfInspectionSection:           headerData.ChiefOfInspectionSection,
 	}
 
 	return pm

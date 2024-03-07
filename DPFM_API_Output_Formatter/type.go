@@ -17,6 +17,7 @@ type SDC struct {
 	APIProcessingResult *bool       `json:"api_processing_result"`
 	APIProcessingError  string      `json:"api_processing_error"`
 	MillSheetPdf        string      `json:"mill_sheet_pdf"`
+	MountPath           *string     `json:"mount_path"`
 }
 
 type Message struct {
@@ -26,8 +27,8 @@ type Message struct {
 }
 
 type Header struct {
-	OrderID   int `json:"OrderID"`
-	OrderItem int `json:"OrderItem"`
+	OrderID   string `json:"OrderID"`
+	OrderItem int    `json:"OrderItem"`
 	//	↑OrderNo                   			string	`json:"orderNo"`
 	BuyerName string `json:"BuyerName"`
 	//	↑Customer                  			string	`json:"customer"`
@@ -46,11 +47,11 @@ type Header struct {
 	ProductionOrder       *int `json:"ProductionOrder"`
 	ProductionOrderItem   *int `json:"ProductionOrderItem"`
 	//	↑MfgNo                     			string	`json:"mfgNo"`
-	Contract      *int `json:"Contract"`
-	ContractItem  *int `json:"ContractItem"`
-	Project       int  `json:"Project"`
-	WBSElement    int  `json:"WBSElement"`
-	InspectionLot int  `json:"InspectionLot"`
+	Contract      *int   `json:"Contract"`
+	ContractItem  *int   `json:"ContractItem"`
+	Project       int    `json:"Project"`
+	WBSElement    int    `json:"WBSElement"`
+	InspectionLot string `json:"InspectionLot"`
 	//	↑CertificateNo             			string	`json:"certificateNo"`
 	InspectionPlantBusinessPartnerName string `json:"InspectionPlantBusinessPartnerName"`
 	//	↑RawMaterialMaker					string	`json:"rawMaterialMaker"`
